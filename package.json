@@ -1,16 +1,16 @@
 {
   "name": "mcp-zephyr-scale",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "MCP Server for Zephyr test management tool",
   "keywords": [
     "zephyr",
     "mcp"
   ],
   "license": "MIT",
-  	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/bun913/mcp-zephyr-scale.git"
-	},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bun913/mcp-zephyr-scale.git"
+  },
   "author": "bun913",
   "type": "module",
   "main": "dist/index.js",
