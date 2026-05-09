@@ -1,12 +1,11 @@
 import { z } from "zod";
+import { projectKeySchema } from "./common.js";
 
 /**
  * Schema for listing environments
  */
 export const listEnvironmentsSchema = {
-	projectKey: z
-		.string()
-		.describe("The project key to filter environments (e.g., 'KAN')"),
+	projectKey: projectKeySchema,
 	maxResults: z
 		.number()
 		.optional()

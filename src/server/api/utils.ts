@@ -3,6 +3,42 @@
  */
 import { logger } from "../../logger.js";
 
+/**
+ * Resolve the effective project key: per-call argument wins over env-var default.
+ * Returns null when neither is set — the caller must return an error in that case.
+ */
+export function resolveProjectKey(
+	perCall: string | undefined,
+	defaultKey: string | undefined,
+): string | null {
+	return perCall ?? defaultKey ?? null;
+}
+
+/**
+ * Standard error response returned when no project key can be resolved.
+ */
+export function createMissingProjectKeyResponse(): {
+	content: [{ type: "text"; text: string }];
+	isError: true;
+} {
+	return {
+		content: [
+			{
+				type: "text",
+				text: JSON.stringify(
+					{
+						error:
+							"projectKey is required: pass it as a tool argument or set the JIRA_PROJECT_KEY environment variable",
+					},
+					null,
+					2,
+				),
+			},
+		],
+		isError: true,
+	};
+}
+
 // Response type definition
 export type MCPToolResponse = {
 	type: "text";

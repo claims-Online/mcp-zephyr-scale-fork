@@ -3,7 +3,12 @@
  */
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ZephyrV2Client } from "../../clients/index.js";
-import { createErrorResponse, createSuccessResponse } from "./utils.js";
+import {
+	createErrorResponse,
+	createSuccessResponse,
+	resolveProjectKey,
+	createMissingProjectKeyResponse,
+} from "./utils.js";
 import { listPrioritiesSchema } from "../../shared/schemas/priorities.js";
 
 /**
@@ -12,6 +17,7 @@ import { listPrioritiesSchema } from "../../shared/schemas/priorities.js";
 export function registerPriorityTools(
 	server: McpServer,
 	zephyrClient: ZephyrV2Client,
+	defaultProjectKey?: string,
 ): void {
 	/**
 	 * List priorities
@@ -21,10 +27,12 @@ export function registerPriorityTools(
 		"List priorities / 優先度一覧を取得します",
 		listPrioritiesSchema,
 		async ({ projectKey, maxResults, startAt }) => {
+			const effectiveKey = resolveProjectKey(projectKey, defaultProjectKey);
+			if (!effectiveKey) return createMissingProjectKeyResponse();
 			try {
 				const result = await zephyrClient.priorities.listPriorities(
 					{
-						projectKey,
+						projectKey: effectiveKey,
 						maxResults: maxResults ?? 10,
 						startAt: startAt ?? 0,
 					},
@@ -44,7 +52,7 @@ export function registerPriorityTools(
 				};
 			} catch (error) {
 				const errorResponse = createErrorResponse(
-					`Error listing priorities for project: ${projectKey}`,
+					`Error listing priorities for project: ${effectiveKey}`,
 					error,
 				);
 				return {

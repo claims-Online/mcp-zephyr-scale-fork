@@ -3,7 +3,12 @@
  */
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ZephyrV2Client } from "../../clients/index.js";
-import { createErrorResponse, createSuccessResponse } from "./utils.js";
+import {
+	createErrorResponse,
+	createSuccessResponse,
+	resolveProjectKey,
+	createMissingProjectKeyResponse,
+} from "./utils.js";
 import {
 	listTestPlansSchema,
 	createTestPlanSchema,
@@ -19,6 +24,7 @@ import {
 export function registerTestPlanTools(
 	server: McpServer,
 	zephyrClient: ZephyrV2Client,
+	defaultProjectKey?: string,
 ): void {
 	/**
 	 * List test plans in a project
@@ -28,10 +34,12 @@ export function registerTestPlanTools(
 		"List test plans in a project / プロジェクト内のテストプラン一覧を取得します",
 		listTestPlansSchema,
 		async ({ projectKey, maxResults, startAt }) => {
+			const effectiveKey = resolveProjectKey(projectKey, defaultProjectKey);
+			if (!effectiveKey) return createMissingProjectKeyResponse();
 			try {
 				const result = await zephyrClient.testplans.listTestPlans(
 					{
-						projectKey,
+						projectKey: effectiveKey,
 						maxResults: maxResults ?? 50,
 						startAt: startAt ?? 0,
 					},
@@ -51,7 +59,7 @@ export function registerTestPlanTools(
 				};
 			} catch (error) {
 				const errorResponse = createErrorResponse(
-					`Error listing test plans for project: ${projectKey}`,
+					`Error listing test plans for project: ${effectiveKey}`,
 					error,
 				);
 				return {
@@ -77,10 +85,12 @@ export function registerTestPlanTools(
 			folderId,
 			customFields,
 		}) => {
+			const effectiveKey = resolveProjectKey(projectKey, defaultProjectKey);
+			if (!effectiveKey) return createMissingProjectKeyResponse();
 			try {
 				const result = await zephyrClient.testplans.createTestPlan(
 					{
-						projectKey,
+						projectKey: effectiveKey,
 						name,
 						objective,
 						...(statusName && { statusName }),

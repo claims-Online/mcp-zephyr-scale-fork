@@ -1,12 +1,11 @@
 import { z } from "zod";
+import { projectKeySchema } from "./common.js";
 
 /**
  * Schema for listing priorities
  */
 export const listPrioritiesSchema = {
-	projectKey: z
-		.string()
-		.describe("The project key to filter priorities (e.g., 'KAN')"),
+	projectKey: projectKeySchema,
 	maxResults: z
 		.number()
 		.optional()

@@ -1,12 +1,11 @@
 import { z } from "zod";
+import { projectKeySchema } from "./common.js";
 
 /**
  * Schema for listing test executions
  */
 export const listTestExecutionsSchema = {
-	projectKey: z
-		.string()
-		.describe("The project key to filter test executions (e.g., 'KAN')"),
+	projectKey: projectKeySchema,
 	maxResults: z
 		.number()
 		.optional()
@@ -21,7 +20,7 @@ export const listTestExecutionsSchema = {
  * Schema for creating a test execution
  */
 export const createTestExecutionSchema = {
-	projectKey: z.string().describe("The project key (e.g., 'KAN')"),
+	projectKey: projectKeySchema,
 	testCaseKey: z
 		.string()
 		.describe("Key of test case the execution applies to (e.g., 'KAN-T1')"),

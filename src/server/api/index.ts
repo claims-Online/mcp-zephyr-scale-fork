@@ -14,36 +14,22 @@ import { registerEnvironmentTools } from "./environments.js";
 import { registerLinkTools } from "./links.js";
 
 /**
- * Register all Zephyr Scale MCP tools
+ * Register all Zephyr Scale MCP tools.
+ * @param defaultProjectKey - Optional fallback when the tool call omits projectKey.
+ *   Populated from JIRA_PROJECT_KEY env var for backward compatibility.
  */
 export function registerAllTools(
 	server: McpServer,
 	zephyrClient: ZephyrV2Client,
+	defaultProjectKey?: string,
 ): void {
-	// Register test case tools
-	registerTestCaseTools(server, zephyrClient);
-
-	// Register folder tools
-	registerFolderTools(server, zephyrClient);
-
-	// Register test plan tools
-	registerTestPlanTools(server, zephyrClient);
-
-	// Register test cycle tools
-	registerTestCycleTools(server, zephyrClient);
-
-	// Register test execution tools
-	registerTestExecutionTools(server, zephyrClient);
-
-	// Register status tools
-	registerStatusTools(server, zephyrClient);
-
-	// Register priority tools (read-only)
-	registerPriorityTools(server, zephyrClient);
-
-	// Register environment tools (read-only)
-	registerEnvironmentTools(server, zephyrClient);
-
-	// Register link tools
+	registerTestCaseTools(server, zephyrClient, defaultProjectKey);
+	registerFolderTools(server, zephyrClient, defaultProjectKey);
+	registerTestPlanTools(server, zephyrClient, defaultProjectKey);
+	registerTestCycleTools(server, zephyrClient, defaultProjectKey);
+	registerTestExecutionTools(server, zephyrClient, defaultProjectKey);
+	registerStatusTools(server, zephyrClient, defaultProjectKey);
+	registerPriorityTools(server, zephyrClient, defaultProjectKey);
+	registerEnvironmentTools(server, zephyrClient, defaultProjectKey);
 	registerLinkTools(server, zephyrClient);
 }

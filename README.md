@@ -1,199 +1,95 @@
-# Zephyr Scale MCP Server
+# claims-Online/mcp-zephyr-scale-fork
 
-MCP Server for Zephyr Scale test management tool.
+## 1. Purpose
 
-## Features
+Lifted the hard-coded single-project constraint from upstream's `mcp-zephyr-scale` so that one MCP server instance can serve all 7 Jira projects (CE, UI, COAGB, IL, MYH, TEST, ACOB) on our Atlassian site. `JIRA_PROJECT_KEY` becomes an optional default; agents pass `projectKey` per tool call to override it.
 
-This MCP server provides comprehensive access to Zephyr Scale API v2, enabling:
+## 2. Upstream
 
-- **Test Case Management**: Create, read, update test cases and test steps
-- **Test Planning**: Manage test plans and link them to test cycles
-- **Test Execution**: Create and track test executions within test cycles
-- **Folder Organization**: Organize test artifacts with folders
-- **Status Management**: Manage custom statuses for test entities
-- **Link Management**: Create web links, issue links, and entity links between test artifacts
-- **Read-only Access**: List priorities and environments configured in your project
+- Repository: https://github.com/bun913/mcp-zephyr-scale  
+- Forked from commit: `fc9d18f3025fa6fb59ea2268837188cebd0b66fc`  
+- License: MIT
 
-## Available Tools
+## 3. Delta
 
-### Test Cases
+**What changed:**
 
-| Tool Name | Description |
-|-----------|-------------|
-| `listTestCases` | List test cases in a project |
-| `createTestCase` | Create a new test case |
-| `getTestCase` | Get details of a specific test case |
-| `updateTestCase` | Update an existing test case |
-| `getTestCaseTestSteps` | Get test steps for a test case |
-| `createTestCaseTestSteps` | Create or append test steps to a test case (supports APPEND/OVERWRITE modes). **Tip:** Use OVERWRITE mode for the first time to avoid unwanted empty placeholder steps |
-| `createTestCaseWebLink` | Create a web link for a test case |
-| `createTestCaseIssueLink` | Create an issue link for a test case |
+- `src/shared/schemas/common.ts` (new) — shared `projectKeySchema`: optional, strict Zod regex `^[A-Z][A-Z0-9_]{1,9}$` (2–10 chars, uppercase, underscore allowed).
+- All 8 schema files (`cases`, `cycles`, `plans`, `executions`, `folders`, `statuses`, `environments`, `priorities`) — replaced the hard-required `z.string()` `projectKey` fields with `projectKeySchema` (imported from `common.ts`).
+- `src/server/api/utils.ts` — added `resolveProjectKey(perCall, default)` and `createMissingProjectKeyResponse()` helpers.
+- All 8 API registration files (`cases`, `cycles`, `plans`, `executions`, `folders`, `statuses`, `environments`, `priorities`) — added `defaultProjectKey?: string` parameter; each tool that uses `projectKey` resolves it via `resolveProjectKey` and returns `createMissingProjectKeyResponse()` when neither is set.
+- `src/server/api/index.ts` — `registerAllTools` accepts and passes down `defaultProjectKey?: string`.
+- `src/index.ts` — `JIRA_PROJECT_KEY` is now an optional env var (only `ZEPHYR_API_TOKEN` remains required); `defaultProjectKey` is threaded through to `registerAllTools`.
+- `test/projectKey.test.ts` (new) — 15 unit tests covering schema validation (valid/invalid keys, optional) and `resolveProjectKey` resolution logic (per-call override, BC fallback, null when absent).
 
-### Folders
+**Backward compatibility:** setting `JIRA_PROJECT_KEY` env var continues to work exactly as before. The only breaking change for existing users is that a missing `JIRA_PROJECT_KEY` no longer fails at startup — it now fails gracefully per-call if `projectKey` is also absent.
 
-| Tool Name | Description |
-|-----------|-------------|
-| `listFolders` | List folders in a project |
-| `createFolder` | Create a new folder |
-| `getFolder` | Get details of a specific folder |
+## 4. Upstream relationship
 
-### Test Plans
+Upstream PR: https://github.com/bun913/mcp-zephyr-scale/pull/15 — open, backward-compat variant, waiting for maintainer review.
 
-| Tool Name | Description |
-|-----------|-------------|
-| `listTestPlans` | List test plans in a project |
-| `createTestPlan` | Create a new test plan |
-| `getTestPlan` | Get details of a specific test plan |
-| `createTestPlanWebLink` | Create a web link for a test plan |
-| `createTestPlanIssueLink` | Create an issue link for a test plan |
-| `createTestPlanTestCycleLink` | Create a test cycle link for a test plan |
+## 5. Retirement criteria
 
-### Test Cycles
+When upstream PR #15 is merged and published in a release, bump `.mcp.json` references in agent configurations to the upstream npm package and archive this fork within 30 days.
 
-| Tool Name | Description |
-|-----------|-------------|
-| `listTestCycles` | List test cycles in a project |
-| `createTestCycle` | Create a new test cycle |
-| `getTestCycle` | Get details of a specific test cycle |
-| `updateTestCycle` | Update an existing test cycle |
-| `createTestCycleWebLink` | Create a web link for a test cycle |
-| `createTestCycleIssueLink` | Create an issue link for a test cycle |
+## 6. Owner
 
-### Test Executions
+**Kocak** (External Developer, ClaimsOnline d.o.o.) — responsible for rebasing, testing, and re-cutting releases.
 
-| Tool Name | Description |
-|-----------|-------------|
-| `listTestExecutions` | List test executions in a project |
-| `createTestExecution` | Create a new test execution |
-| `getTestExecution` | Get details of a specific test execution |
-| `createTestExecutionIssueLink` | Create an issue link for a test execution |
+## 7. Quarterly review log
 
-### Statuses
+| Date | Reviewer | Status | Action |
+|------|----------|--------|--------|
+| 2026-Q2 | Kocak | Active — upstream PR open | Monitor PR #15 for merge |
 
-| Tool Name | Description |
-|-----------|-------------|
-| `listStatuses` | List statuses |
-| `createStatus` | Create a new status |
-| `getStatus` | Get details of a specific status |
+---
 
-### Priorities
+## Installation (fork variant)
 
-| Tool Name | Description |
-|-----------|-------------|
-| `listPriorities` | List priorities (read-only) |
-
-### Environments
-
-| Tool Name | Description |
-|-----------|-------------|
-| `listEnvironments` | List environments (read-only) |
-
-### Links
-
-| Tool Name | Description |
-|-----------|-------------|
-| `deleteLink` | Delete a link |
-
-## Installation
-
-### Using with NPM (Recommended)
-
-Add the following configuration to your `.mcp.json`:
+Add to your `.mcp.json`, pinned to a SHA:
 
 ```json
 {
   "mcpServers": {
     "zephyr-scale": {
       "command": "npx",
-      "args": ["-y", "mcp-zephyr-scale"],
+      "args": [
+        "-y",
+        "github:claims-Online/mcp-zephyr-scale-fork#<SHA>"
+      ],
       "env": {
-        "ZEPHYR_API_TOKEN": "your-api-token-here",
-        "JIRA_PROJECT_KEY": "YOUR_PROJECT"
+        "ZEPHYR_API_TOKEN": "your-api-token-here"
       }
-    },
-    "atlassian": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.atlassian.com/v1/sse"]
     }
   }
 }
 ```
 
-**Why use both servers?**
-- **Zephyr Scale MCP**: Provides test management functionality (test cases, test plans, test cycles, test executions)
-- **Atlassian MCP**: Provides Jira issue management and Confluence documentation access
+Replace `<SHA>` with the commit SHA from this repo you want to pin to. `JIRA_PROJECT_KEY` is optional — set it for single-project mode (BC), omit it to require `projectKey` on every tool call.
 
-This combination allows you to create Jira issues with API specifications and link them to test cases, creating full traceability from requirements to test execution.
+**Multi-project example** (no env default, per-call projectKey):
 
-### Required Environment Variables
+```json
+{
+  "mcpServers": {
+    "zephyr-scale": {
+      "command": "npx",
+      "args": ["-y", "github:claims-Online/mcp-zephyr-scale-fork#<SHA>"],
+      "env": {
+        "ZEPHYR_API_TOKEN": "your-api-token-here"
+      }
+    }
+  }
+}
+```
 
-- `ZEPHYR_API_TOKEN`: Your Zephyr Scale API token
-- `JIRA_PROJECT_KEY`: Your Jira project key (e.g., "KAN")
-
-### How to Get Your Zephyr API Token
-
-1. In Jira, click your profile picture
-2. Select "Zephyr API keys"
-3. Generate a new API key
-
-For more information, see the [Zephyr Scale documentation](https://support.smartbear.com/zephyr-scale-cloud/docs/en/rest-api/api-access-tokens-management.html).
-
-### Atlassian MCP Authentication
-
-When you first add the Atlassian MCP Server:
-1. The server will prompt you to authorize access via OAuth
-2. You'll be redirected to Atlassian to complete authentication
-3. Select which products to allow access (Jira and/or Confluence)
-4. Click "Approve" to complete the authentication
-
-If your authentication expires, you can reconnect using:
-- **Claude Code**: Run the `/mcp` command to manage MCP server connections and select "Reconnect" for the Atlassian server
+Then call any tool with `projectKey: "CE"` or `projectKey: "UI"` etc.
 
 ## Development
 
-### Setup
-
 ```bash
-# Install dependencies
 npm install
-
-# Build the project
 npm run build
-
-# Run tests
 npm test
-
-# Format code
-npm run format
-
-# Lint code
-npm run lint
-
-# Check code (lint + format)
 npm run check
 ```
-
-### Testing Local Build
-
-For development, you can test the local build instead of the NPM package. Add the following configuration to your `.mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "zephyr-scale": {
-      "command": "node",
-      "args": ["/absolute/path/to/mcp-zephyr-scale/dist/index.js"],
-      "env": {
-        "ZEPHYR_API_TOKEN": "your-api-token-here",
-        "JIRA_PROJECT_KEY": "YOUR_PROJECT"
-      }
-    }
-  }
-}
-```
-
-Replace `/absolute/path/to/mcp-zephyr-scale` with the actual absolute path to your local repository.
-
-## License
-
-MIT
