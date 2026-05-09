@@ -26,11 +26,11 @@ Lifted the hard-coded single-project constraint from upstream's `mcp-zephyr-scal
 
 ## 4. Upstream relationship
 
-Upstream PR: https://github.com/bun913/mcp-zephyr-scale/pull/15 — open, backward-compat variant, waiting for maintainer review.
+Upstream PR: https://github.com/bun913/mcp-zephyr-scale/pull/34 — open, backward-compat variant, waiting for maintainer review.
 
 ## 5. Retirement criteria
 
-When upstream PR #15 is merged and published in a release, bump `.mcp.json` references in agent configurations to the upstream npm package and archive this fork within 30 days.
+When upstream PR #34 is merged and published in a release, bump `.mcp.json` references in agent configurations to the upstream npm package and archive this fork within 30 days.
 
 ## 6. Owner
 
