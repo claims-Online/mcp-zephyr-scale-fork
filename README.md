@@ -8,7 +8,7 @@ Lifted the hard-coded single-project constraint from upstream's `mcp-zephyr-scal
 
 - Repository: https://github.com/bun913/mcp-zephyr-scale  
 - Forked from commit: `fc9d18f3025fa6fb59ea2268837188cebd0b66fc`  
-- License: MIT
+- License: MIT (inherited from upstream — see [LICENSE](./LICENSE))
 
 ## 3. Delta
 
@@ -40,7 +40,7 @@ When upstream PR #34 is merged and published in a release, bump `.mcp.json` refe
 
 | Date | Reviewer | Status | Action |
 |------|----------|--------|--------|
-| 2026-Q2 | Kocak | Active — upstream PR open | Monitor PR #15 for merge |
+| 2026-Q2 | Kocak | Active — upstream PR open | Monitor PR #34 for merge |
 
 ---
 
@@ -48,24 +48,24 @@ When upstream PR #34 is merged and published in a release, bump `.mcp.json` refe
 
 Add to your `.mcp.json`, pinned to a SHA:
 
+**Single-project (BC mode)** — set `JIRA_PROJECT_KEY` as the default; agents may omit `projectKey` on every call:
+
 ```json
 {
   "mcpServers": {
     "zephyr-scale": {
       "command": "npx",
-      "args": [
-        "-y",
-        "github:claims-Online/mcp-zephyr-scale-fork#<SHA>"
-      ],
+      "args": ["-y", "github:claims-Online/mcp-zephyr-scale-fork#<SHA>"],
       "env": {
-        "ZEPHYR_API_TOKEN": "your-api-token-here"
+        "ZEPHYR_API_TOKEN": "your-api-token-here",
+        "JIRA_PROJECT_KEY": "CE"
       }
     }
   }
 }
 ```
 
-Replace `<SHA>` with the commit SHA from this repo you want to pin to. `JIRA_PROJECT_KEY` is optional — set it for single-project mode (BC), omit it to require `projectKey` on every tool call.
+Replace `<SHA>` with the commit SHA from this repo you want to pin to.
 
 **Multi-project example** (no env default, per-call projectKey):
 
