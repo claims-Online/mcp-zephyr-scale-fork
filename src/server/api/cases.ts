@@ -3,7 +3,12 @@
  */
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ZephyrV2Client } from "zephyr-api-client";
-import { createSuccessResponse, createErrorResponse } from "./utils.js";
+import {
+	createSuccessResponse,
+	createErrorResponse,
+	resolveProjectKey,
+	createMissingProjectKeyResponse,
+} from "./utils.js";
 import {
 	listTestCasesSchema,
 	createTestCaseSchema,
@@ -21,6 +26,7 @@ import {
 export function registerTestCaseTools(
 	server: McpServer,
 	zephyrClient: ZephyrV2Client,
+	defaultProjectKey?: string,
 ): void {
 	// List test cases
 	server.tool(
@@ -28,10 +34,12 @@ export function registerTestCaseTools(
 		"List test cases in a project / プロジェクト内のテストケース一覧を取得します",
 		listTestCasesSchema,
 		async ({ projectKey, folderId, maxResults, startAt }) => {
+			const effectiveKey = resolveProjectKey(projectKey, defaultProjectKey);
+			if (!effectiveKey) return createMissingProjectKeyResponse();
 			try {
 				const result = await zephyrClient.testcases.listTestCases(
 					{
-						projectKey,
+						projectKey: effectiveKey,
 						folderId,
 						maxResults,
 						startAt,
@@ -51,7 +59,7 @@ export function registerTestCaseTools(
 				};
 			} catch (error) {
 				const errorResponse = createErrorResponse(
-					`Error fetching test cases for project ${projectKey}`,
+					`Error fetching test cases for project ${effectiveKey}`,
 					error,
 				);
 				return {
@@ -79,10 +87,12 @@ export function registerTestCaseTools(
 			labels,
 			customFields,
 		}) => {
+			const effectiveKey = resolveProjectKey(projectKey, defaultProjectKey);
+			if (!effectiveKey) return createMissingProjectKeyResponse();
 			try {
 				const result = await zephyrClient.testcases.createTestCase(
 					{
-						projectKey,
+						projectKey: effectiveKey,
 						name,
 						objective,
 						precondition,

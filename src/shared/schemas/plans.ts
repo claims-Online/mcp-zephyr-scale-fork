@@ -1,12 +1,11 @@
 import { z } from "zod";
+import { projectKeySchema } from "./common.js";
 
 /**
  * Schema for listing test plans
  */
 export const listTestPlansSchema = {
-	projectKey: z
-		.string()
-		.describe("The project key to filter test plans (e.g., 'KAN')"),
+	projectKey: projectKeySchema,
 	maxResults: z
 		.number()
 		.optional()
@@ -21,7 +20,7 @@ export const listTestPlansSchema = {
  * Schema for creating a test plan
  */
 export const createTestPlanSchema = {
-	projectKey: z.string().describe("The project key (e.g., 'KAN')"),
+	projectKey: projectKeySchema,
 	name: z.string().describe("Test plan name"),
 	objective: z.string().optional().describe("A description of the objective"),
 	statusName: z.string().optional().describe("Status name (e.g., 'Draft')"),

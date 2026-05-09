@@ -3,7 +3,12 @@
  */
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ZephyrV2Client } from "../../clients/index.js";
-import { createErrorResponse, createSuccessResponse } from "./utils.js";
+import {
+	createErrorResponse,
+	createSuccessResponse,
+	resolveProjectKey,
+	createMissingProjectKeyResponse,
+} from "./utils.js";
 import { listEnvironmentsSchema } from "../../shared/schemas/environments.js";
 
 /**
@@ -12,6 +17,7 @@ import { listEnvironmentsSchema } from "../../shared/schemas/environments.js";
 export function registerEnvironmentTools(
 	server: McpServer,
 	zephyrClient: ZephyrV2Client,
+	defaultProjectKey?: string,
 ): void {
 	/**
 	 * List environments
@@ -21,10 +27,12 @@ export function registerEnvironmentTools(
 		"List environments / 環境一覧を取得します",
 		listEnvironmentsSchema,
 		async ({ projectKey, maxResults, startAt }) => {
+			const effectiveKey = resolveProjectKey(projectKey, defaultProjectKey);
+			if (!effectiveKey) return createMissingProjectKeyResponse();
 			try {
 				const result = await zephyrClient.environments.listEnvironments(
 					{
-						projectKey,
+						projectKey: effectiveKey,
 						maxResults: maxResults ?? 10,
 						startAt: startAt ?? 0,
 					},
@@ -44,7 +52,7 @@ export function registerEnvironmentTools(
 				};
 			} catch (error) {
 				const errorResponse = createErrorResponse(
-					`Error listing environments for project: ${projectKey}`,
+					`Error listing environments for project: ${effectiveKey}`,
 					error,
 				);
 				return {

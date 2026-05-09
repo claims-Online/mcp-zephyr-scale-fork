@@ -1,12 +1,11 @@
 import { z } from "zod";
+import { projectKeySchema } from "./common.js";
 
 /**
  * Schema for listing folders
  */
 export const listFoldersSchema = {
-	projectKey: z
-		.string()
-		.describe("The project key to filter folders (e.g., 'KAN')"),
+	projectKey: projectKeySchema,
 	folderType: z
 		.enum(["TEST_CASE", "TEST_PLAN", "TEST_CYCLE"])
 		.optional()
@@ -25,7 +24,7 @@ export const listFoldersSchema = {
  * Schema for creating a folder
  */
 export const createFolderSchema = {
-	projectKey: z.string().describe("The project key (e.g., 'KAN')"),
+	projectKey: projectKeySchema,
 	name: z.string().min(1).max(255).describe("Folder name (1-255 characters)"),
 	folderType: z
 		.enum(["TEST_CASE", "TEST_PLAN", "TEST_CYCLE"])

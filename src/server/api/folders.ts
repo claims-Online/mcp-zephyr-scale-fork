@@ -3,7 +3,12 @@
  */
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ZephyrV2Client } from "../../clients/index.js";
-import { createErrorResponse, createSuccessResponse } from "./utils.js";
+import {
+	createErrorResponse,
+	createSuccessResponse,
+	resolveProjectKey,
+	createMissingProjectKeyResponse,
+} from "./utils.js";
 import {
 	listFoldersSchema,
 	createFolderSchema,
@@ -16,6 +21,7 @@ import {
 export function registerFolderTools(
 	server: McpServer,
 	zephyrClient: ZephyrV2Client,
+	defaultProjectKey?: string,
 ): void {
 	/**
 	 * List folders in a project
@@ -25,10 +31,12 @@ export function registerFolderTools(
 		"List folders in a project / プロジェクト内のフォルダー一覧を取得します",
 		listFoldersSchema,
 		async ({ projectKey, folderType, maxResults, startAt }) => {
+			const effectiveKey = resolveProjectKey(projectKey, defaultProjectKey);
+			if (!effectiveKey) return createMissingProjectKeyResponse();
 			try {
 				const result = await zephyrClient.folders.listFolders(
 					{
-						projectKey,
+						projectKey: effectiveKey,
 						folderType,
 						maxResults: maxResults ?? 50,
 						startAt: startAt ?? 0,
@@ -49,7 +57,7 @@ export function registerFolderTools(
 				};
 			} catch (error) {
 				const errorResponse = createErrorResponse(
-					`Error listing folders for project: ${projectKey}`,
+					`Error listing folders for project: ${effectiveKey}`,
 					error,
 				);
 				return {
@@ -68,10 +76,12 @@ export function registerFolderTools(
 		"Create a new folder / 新しいフォルダーを作成します",
 		createFolderSchema,
 		async ({ projectKey, name, folderType, parentId }) => {
+			const effectiveKey = resolveProjectKey(projectKey, defaultProjectKey);
+			if (!effectiveKey) return createMissingProjectKeyResponse();
 			try {
 				const result = await zephyrClient.folders.createFolder(
 					{
-						projectKey,
+						projectKey: effectiveKey,
 						name,
 						folderType,
 						...(parentId !== undefined && { parentId }),

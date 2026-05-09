@@ -1,12 +1,11 @@
 import { z } from "zod";
+import { projectKeySchema } from "./common.js";
 
 /**
  * Schema for listing statuses
  */
 export const listStatusesSchema = {
-	projectKey: z
-		.string()
-		.describe("The project key to filter statuses (e.g., 'KAN')"),
+	projectKey: projectKeySchema,
 	maxResults: z
 		.number()
 		.optional()
@@ -21,7 +20,7 @@ export const listStatusesSchema = {
  * Schema for creating a status
  */
 export const createStatusSchema = {
-	projectKey: z.string().describe("The project key (e.g., 'KAN')"),
+	projectKey: projectKeySchema,
 	name: z.string().describe("The status name"),
 	type: z
 		.enum(["TEST_CASE", "TEST_PLAN", "TEST_CYCLE", "TEST_EXECUTION"])

@@ -2,14 +2,13 @@
  * Zod schemas for Test Case operations
  */
 import { z } from "zod";
+import { projectKeySchema } from "./common.js";
 
 /**
  * Schema for listing test cases
  */
 export const listTestCasesSchema = {
-	projectKey: z
-		.string()
-		.describe("The project key to filter test cases (e.g., 'KAN')"),
+	projectKey: projectKeySchema,
 	folderId: z
 		.number()
 		.optional()
@@ -28,7 +27,7 @@ export const listTestCasesSchema = {
  * Schema for creating a test case
  */
 export const createTestCaseSchema = {
-	projectKey: z.string().describe("The project key (e.g., 'KAN')"),
+	projectKey: projectKeySchema,
 	name: z.string().describe("Test case name"),
 	objective: z.string().optional().describe("Test objective description"),
 	precondition: z.string().optional().describe("Preconditions for the test"),

@@ -1,12 +1,11 @@
 import { z } from "zod";
+import { projectKeySchema } from "./common.js";
 
 /**
  * Schema for listing test cycles
  */
 export const listTestCyclesSchema = {
-	projectKey: z
-		.string()
-		.describe("The project key to filter test cycles (e.g., 'KAN')"),
+	projectKey: projectKeySchema,
 	folderId: z.number().optional().describe("Folder ID filter"),
 	maxResults: z
 		.number()
@@ -22,7 +21,7 @@ export const listTestCyclesSchema = {
  * Schema for creating a test cycle
  */
 export const createTestCycleSchema = {
-	projectKey: z.string().describe("The project key (e.g., 'KAN')"),
+	projectKey: projectKeySchema,
 	name: z.string().describe("Test cycle name"),
 	description: z
 		.string()

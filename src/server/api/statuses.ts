@@ -3,7 +3,12 @@
  */
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ZephyrV2Client } from "../../clients/index.js";
-import { createErrorResponse, createSuccessResponse } from "./utils.js";
+import {
+	createErrorResponse,
+	createSuccessResponse,
+	resolveProjectKey,
+	createMissingProjectKeyResponse,
+} from "./utils.js";
 import {
 	listStatusesSchema,
 	createStatusSchema,
@@ -16,6 +21,7 @@ import {
 export function registerStatusTools(
 	server: McpServer,
 	zephyrClient: ZephyrV2Client,
+	defaultProjectKey?: string,
 ): void {
 	/**
 	 * List statuses
@@ -25,10 +31,12 @@ export function registerStatusTools(
 		"List statuses / ステータス一覧を取得します",
 		listStatusesSchema,
 		async ({ projectKey, maxResults, startAt }) => {
+			const effectiveKey = resolveProjectKey(projectKey, defaultProjectKey);
+			if (!effectiveKey) return createMissingProjectKeyResponse();
 			try {
 				const result = await zephyrClient.statuses.listStatuses(
 					{
-						projectKey,
+						projectKey: effectiveKey,
 						maxResults: maxResults ?? 10,
 						startAt: startAt ?? 0,
 					},
@@ -48,7 +56,7 @@ export function registerStatusTools(
 				};
 			} catch (error) {
 				const errorResponse = createErrorResponse(
-					`Error listing statuses for project: ${projectKey}`,
+					`Error listing statuses for project: ${effectiveKey}`,
 					error,
 				);
 				return {
@@ -67,10 +75,12 @@ export function registerStatusTools(
 		"Create a new status / 新しいステータスを作成します",
 		createStatusSchema,
 		async ({ projectKey, name, type, description, color }) => {
+			const effectiveKey = resolveProjectKey(projectKey, defaultProjectKey);
+			if (!effectiveKey) return createMissingProjectKeyResponse();
 			try {
 				const result = await zephyrClient.statuses.createStatus(
 					{
-						projectKey,
+						projectKey: effectiveKey,
 						name,
 						type,
 						...(description && { description }),
